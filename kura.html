@@ -1,0 +1,105 @@
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <title>Kuramoto Simulator</title>
+
+    <!-- javascriptで実装する。 -->
+    <script type="text/javascript">
+      var K = 0.38;
+      var N = 50;
+      var speed = 3.5;
+      var sim_rep = 75;
+      var delta_t = 0.015;
+      var clock = [];
+      var omega = [];
+      var ctx_circle;
+      
+      function seiki(m, s) {
+        var a = 1 - Math.random();
+        var b = 1 - Math.random();
+        var c = Math.sqrt(-2 * Math.log(a));
+        return speed;
+        if(0.5 - Math.random() > 0) {
+          return c * Math.sin(Math.PI * 2 * b) * s + m;
+        }else{
+          return c * Math.cos(Math.PI * 2 * b) * s + m;
+        }
+      }
+      
+      var timer;
+      function start() {
+          // initialize
+          clearInterval(timer);
+          clock = [];
+          omega = [];
+          for (var i=0; i<N; i++) {
+              clock.push(Math.random()*2*Math.PI)
+              omega.push(seiki(1.2, 0.7));
+          }       
+          ctx_circle = document.getElementById('circle').getContext('2d');
+          
+          // repeat
+          timer = setInterval(draw, 23)
+      }
+      
+      function draw() {
+          
+          // calculate the differential equation
+          for (var n=0; n<sim_rep; n++){
+              var clock_speed = [];
+              for (var i=0; i<N; i++) {
+                  var a = 0.0;
+                  clock_speed.push(0.0);
+                  for (var j=0; j<N; j++) { a += Math.sin(clock[j]-clock[i]) }
+                  clock_speed[i] += (omega[i] + K/N * a) * delta_t
+              }
+          }
+          
+          for (var i=0; i<N; i++) {
+              clock[i] += clock_speed[i];
+              //if (clock[i] >= 2*Math.PI) clock[i] -= 2*Math.PI;
+          }
+          
+          ctx_circle.globalCompositeOperation = "source-over";
+          ctx_circle.fillStyle = '#FFFFFF';
+          ctx_circle.fillRect(0, 0, 400, 400);
+          
+          ctx_circle.beginPath();
+          ctx_circle.fillStyle = '#000000';
+          ctx_circle.arc(200, 200, 150, 0, Math.PI*2.0, true);
+          ctx_circle.stroke();
+          
+          for (var i=0; i<N; i++) {
+              ctx_circle.beginPath();
+              ctx_circle.fillStyle = '#000000';
+              ctx_circle.arc(200+150*Math.sin(clock[i]), 200+150*Math.cos(clock[i]), 10, 0, Math.PI*2.0, true);
+              ctx_circle.stroke();
+          }
+          
+          var avx = 0.0, avy = 0.0;
+          for (var i=0; i<N; i++) {
+              avx += 150*Math.sin(clock[i]), avy += 150*Math.cos(clock[i])
+          }
+          avx = avx/N, avy = avy/N
+          
+          ctx_circle.beginPath();
+          ctx_circle.fillStyle = '#00A0C0';
+          ctx_circle.arc(200+avx, 200+avy, 10, 0, Math.PI*2.0, true);
+          ctx_circle.fill();
+          
+      }
+      
+    </script>
+
+    <style type="text/css">
+      canvas { background-color:#FFF; border: 1px solid #999; }
+    </style>
+  </head>
+
+  <!-- 画面表示部分 -->
+  <body>
+    <input type="button" value ="start" onclick="start()">
+    <br>
+    <canvas id="circle" width="400" height="400"></canvas>
+  </body>
+</html>
